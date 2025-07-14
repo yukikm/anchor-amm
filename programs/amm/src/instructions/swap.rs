@@ -48,7 +48,7 @@ pub struct Swap<'info> {
 
     #[account(
         mut,
-        associated_token::mint = mint_x,
+        associated_token::mint = mint_y,
         associated_token::authority = config,
     )]
     pub vault_y: Account<'info, TokenAccount>,
