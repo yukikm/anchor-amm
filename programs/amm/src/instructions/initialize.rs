@@ -14,6 +14,7 @@ pub struct Initialize<'info> {
     pub initializer: Signer<'info>,
     pub mint_x: Account<'info, Mint>,
     pub mint_y: Account<'info, Mint>,
+    // create lp token mint account. use pda
     #[account(
         init,
         payer = initializer,
@@ -32,6 +33,7 @@ pub struct Initialize<'info> {
     )]
     pub config: Account<'info, Config>,
 
+    // config pda's associated token accounts for mint_x and mint_y
     #[account(
         init,
         payer = initializer,
@@ -59,6 +61,7 @@ impl<'info> Initialize<'info> {
         seed: u64,
         fee: u16,
         authority: Option<Pubkey>,
+        // if you have a bump in struct, <ACCOUNT_NAME>Bumps are created automatically
         bumps: InitializeBumps,
     ) -> Result<()> {
         require!(fee <= 10000, AmmError::InvalidFee);

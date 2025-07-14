@@ -50,7 +50,7 @@ pub struct Withdraw<'info> {
         associated_token::mint = mint_x,
         associated_token::authority = user,
     )]
-    pub user_x_ata: Account<'info, TokenAccount>,
+    pub user_x: Account<'info, TokenAccount>,
 
     #[account(
         init_if_needed,
@@ -58,14 +58,14 @@ pub struct Withdraw<'info> {
         associated_token::mint = mint_y,
         associated_token::authority = user,
     )]
-    pub user_y_ata: Account<'info, TokenAccount>,
+    pub user_y: Account<'info, TokenAccount>,
 
     #[account(
         mut,
         associated_token::mint = mint_lp,
         associated_token::authority = user,
     )]
-    pub user_lp_ata: Account<'info, TokenAccount>,
+    pub user_lp: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -85,6 +85,7 @@ impl<'info> Withdraw<'info> {
             6,
         )
         .map_err(AmmError::from)?;
+        // map_err is used to convert the error type from ConstantProduct to AmmError
 
         require!(
             min_x <= amounts.x && min_y <= amounts.y,
@@ -104,11 +105,11 @@ impl<'info> Withdraw<'info> {
         let (from, to) = match is_x {
             true => (
                 self.vault_x.to_account_info(),
-                self.user_x_ata.to_account_info(),
+                self.user_x.to_account_info(),
             ),
             false => (
                 self.vault_y.to_account_info(),
-                self.user_y_ata.to_account_info(),
+                self.user_y.to_account_info(),
             ),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -134,7 +135,7 @@ impl<'info> Withdraw<'info> {
     pub fn burn_lp_tokens(&mut self, amount: u64) -> Result<()> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
-            from: self.user_lp_ata.to_account_info(),
+            from: self.user_lp.to_account_info(),
             mint: self.mint_lp.to_account_info(),
             authority: self.user.to_account_info(),
         };

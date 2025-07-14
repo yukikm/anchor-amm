@@ -42,6 +42,7 @@ pub struct Deposit<'info> {
     )]
     pub vault_y: Account<'info, TokenAccount>,
 
+    // User's associated token accounts for mint_x and mint_y
     #[account(
         mut,
         associated_token::mint = mint_x,
@@ -78,14 +79,17 @@ impl<'info> Deposit<'info> {
         require!(self.config.locked == false, AmmError::PoolLocked);
         require!(amount != 0, AmmError::InvalidAmount);
 
+        // self.~ is used to access the fields of the struct
+        // self.mint_lp.supply is the total supply of LP tokens currently minted
         let (x, y) = match self.mint_lp.supply == 0
             && self.vault_x.amount == 0
             && self.vault_y.amount == 0
         {
+            // If the LP token supply is zero, it means this is the first deposit
             true => (max_x, max_y),
             false => {
                 // Get amount of X and Y to deposit from liquidity token amount
-                //
+                // xy_deposit_amounts_from_l calculates the amounts of X and Y
                 let amount = ConstantProduct::xy_deposit_amounts_from_l(
                     self.vault_x.amount,
                     self.vault_y.amount,
@@ -95,6 +99,10 @@ impl<'info> Deposit<'info> {
                 )
                 .unwrap();
                 (amount.x, amount.y)
+                // unwrap is used here because we expect the calculation to always succeed
+                // If it fails, it will return an error
+                // This is a simplification, in production code you might want to handle this error more
+                // gracefully
             }
         };
 

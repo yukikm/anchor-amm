@@ -21,7 +21,7 @@ pub struct Swap<'info> {
         associated_token::mint = mint_x,
         associated_token::authority = user,
     )]
-    pub user_x_ata: Account<'info, TokenAccount>,
+    pub user_x: Account<'info, TokenAccount>,
 
     #[account(
         init_if_needed,
@@ -29,7 +29,7 @@ pub struct Swap<'info> {
         associated_token::mint = mint_y,
         associated_token::authority = user,
     )]
-    pub user_y_ata: Account<'info, TokenAccount>,
+    pub user_y: Account<'info, TokenAccount>,
 
     #[account(
         has_one = mint_x,
@@ -59,10 +59,14 @@ pub struct Swap<'info> {
 }
 
 impl<'info> Swap<'info> {
+    // when is_x = true we swap X for Y
+    // when is_x = false we swap Y for X
+    // amount is the amount of the token we are swapping in
     pub fn swap(&mut self, is_x: bool, amount: u64, min: u64) -> Result<()> {
         require!(self.config.locked == false, AmmError::PoolLocked);
         require!(amount > 0, AmmError::InvalidAmount);
 
+        // Create a new Constant Product Curve
         let mut curve = ConstantProduct::init(
             self.vault_x.amount,
             self.vault_y.amount,
@@ -89,11 +93,11 @@ impl<'info> Swap<'info> {
     pub fn deposit_tokens(&mut self, is_x: bool, amount: u64) -> Result<()> {
         let (from, to) = match is_x {
             true => (
-                self.user_x_ata.to_account_info(),
+                self.user_x.to_account_info(),
                 self.vault_x.to_account_info(),
             ),
             false => (
-                self.user_y_ata.to_account_info(),
+                self.user_y.to_account_info(),
                 self.vault_y.to_account_info(),
             ),
         };
@@ -112,11 +116,11 @@ impl<'info> Swap<'info> {
         let (from, to) = match is_x {
             true => (
                 self.vault_y.to_account_info(),
-                self.user_y_ata.to_account_info(),
+                self.user_y.to_account_info(),
             ),
             false => (
                 self.vault_x.to_account_info(),
-                self.user_x_ata.to_account_info(),
+                self.user_x.to_account_info(),
             ),
         };
 
