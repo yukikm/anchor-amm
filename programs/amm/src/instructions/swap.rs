@@ -102,12 +102,14 @@ impl<'info> Swap<'info> {
             ),
         };
 
+        let cpi_program = self.token_program.to_account_info();
+
         let accounts = Transfer {
             from,
             to,
             authority: self.user.to_account_info(),
         };
-        let cpi_context = CpiContext::new(self.token_program.to_account_info(), accounts);
+        let cpi_context = CpiContext::new(cpi_program, accounts);
         transfer(cpi_context, amount)?;
         Ok(())
     }
